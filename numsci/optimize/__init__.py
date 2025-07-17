@@ -1,1 +1,1 @@
-from .minpack import curve_fit
+from .minpackk import curve_fit
