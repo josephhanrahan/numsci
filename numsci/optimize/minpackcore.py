@@ -16,17 +16,11 @@ _lmdif.argtypes = _lmdif.argtypes = [ctypes.c_void_p,
                    ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, 
                    ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
-# @njit(cache=True)
-# def lmdif(func_addr):
-    # make sure to prep residual function by calling _set_variables
-
-    # pass
-
 _set_variables = minpack.set_variables
 _set_variables.restype = None
 _set_variables.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
-@njit(cache=True)
+@njit
 def set_variables(f_addr, xdata, ydata):
     _set_variables(f_addr, xdata.ctypes.data, ydata.ctypes.data)
     return
@@ -36,7 +30,7 @@ _residual_function_restype = ctypes.c_int
 _residual_function.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 residual_function_addr = ctypes.cast(_residual_function, ctypes.c_void_p).value
     
-@njit(cache=True)
+@njit
 def leastsq(func_addr, x0, m, Dfun=None, full_output=False,
             col_deriv=False, ftol=1.49012e-8, xtol=1.49012e-8,
             gtol=0.0, maxfev=0, epsfcn=None, factor=100, diag=None):
@@ -72,7 +66,7 @@ def leastsq(func_addr, x0, m, Dfun=None, full_output=False,
 
     return x, fvec
 
-@njit(cache=True)
+@njit
 def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=None,
               check_finite=None, bounds=(-np.inf, np.inf), method=None,
               jac=None, full_output=False, nan_policy=None):
@@ -82,6 +76,6 @@ def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=None,
     method = 'lm'
 
     if method == 'lm':
-        x, fvec = leastsq(residual_function_addr, len(xdata), p0)
+        x, fvec = leastsq(residual_function_addr, p0, len(xdata))
 
     return x, fvec
