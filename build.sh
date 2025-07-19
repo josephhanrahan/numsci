@@ -1,1 +1,1 @@
-gcc -O3 -fPIC -shared -o minpack.so __minpack.c residual.c
+gcc -O3 -fPIC -shared -o numsci/optimize/minpack.so numsci/optimize/__minpack.c numsci/optimize/residual.c

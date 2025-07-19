@@ -1,4 +1,4 @@
-from numba import cfunc, types, njit
+from numba import types, njit
 import os
 import ctypes
 import numpy as np
@@ -9,7 +9,7 @@ model_sig = types.double(types.double, types.CPointer(types.double))
 
 _lmdif = minpack.LMDIF
 _lmdif.restype = None
-_lmdif.argtypes = _lmdif.argtypes = [ctypes.c_void_p,
+_lmdif.argtypes = [ctypes.c_void_p,
                    ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double,
                    ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double,
                    ctypes.c_void_p, ctypes.c_int, ctypes.c_double, ctypes.c_int,
@@ -22,12 +22,36 @@ _set_variables.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
 @njit
 def set_variables(f_addr, xdata, ydata):
+    """
+    A wrapper for C callback function _set_variables(), which sets the the global
+    variables global_function_ptr, global_xdata, global_ydata in residual.c to be
+    used when calling residual_function() in residual.c, thus bypassing the need
+    to dynamically create a new residual function for minpack calls.
+
+    Parameters
+    ----------
+    f_addr : address to callable cfunc
+        The address to model function, f(x, *params). It must take the independent
+        variable x as the first argument and an array of params as the second
+        argument.
+    xdata : np.ndarray
+        The independent variable where the data is measured in the form of a
+        length M array.
+        
+    ydata : np.ndarray
+        The dependent data, a length M array - nominally ``f(xdata, *params)``.
+
+    Returns
+    -------
+    residual_function_addr : ctypes.c_void_p
+        A pointer to the address of the residual function in residual.c
+    """
     _set_variables(f_addr, xdata.ctypes.data, ydata.ctypes.data)
-    return
+    return residual_function_addr
 
 _residual_function = minpack.residual_function
-_residual_function_restype = ctypes.c_int
-_residual_function.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+_residual_function.argtypes = [ctypes.c_void_p, ctypes.c_void_p, 
+                               ctypes.c_void_p, ctypes.c_void_p]
 residual_function_addr = ctypes.cast(_residual_function, ctypes.c_void_p).value
     
 @njit
@@ -37,8 +61,12 @@ def leastsq(func_addr, x0, m, Dfun=None, full_output=False,
     x0_len = len(x0)
     n = types.intc(x0_len)
     m = types.intc(m)
-    x = np.array(x0, dtype=np.float64) # initial params, length n
-    fvec = np.zeros((m,), dtype=np.float64) # output array of params + sample points, length m
+    # initial params (x0), length n
+    x = np.array(x0, dtype=np.float64)
+    # output array of residuals, length m
+    fvec = np.zeros((m,), dtype=np.float64)
+
+    # set the rest of the parameters lmdif wants
     ftol=types.float64(1.49012e-8)
     xtol=types.float64(1.49012e-8)
     gtol=types.float64(0.0)
@@ -70,12 +98,37 @@ def leastsq(func_addr, x0, m, Dfun=None, full_output=False,
 def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=None,
               check_finite=None, bounds=(-np.inf, np.inf), method=None,
               jac=None, full_output=False, nan_policy=None):
+    """
+    Use non-linear least squares to fit a function, f, to data.
 
-    set_variables(f, xdata, ydata)
-    # bounded_problem = np.any((lb > -np.inf) | (ub < np.inf))
+    Assumes ``ydata = f(xdata, *params) + eps``.
+
+    Parameters
+    ----------
+    f : address to callable cfunc
+        The address to model function, f(x, *params). It must take the independent
+        variable x as the first argument and an array of params to fit
+        as the second argument.
+    xdata : array_like
+        The independent variable where the data is measured in the form of a
+        length M array.
+    ydata : array_like
+        The dependent data, a length M array - nominally ``f(xdata, *params)``.
+    p0 : array_like
+        Initial guess for the parameters (length N).
+
+    Returns
+    -------
+    popt : array
+        Optimal values for the parameters so that the sum of the squared
+        residuals of ``f(xdata, *popt) - ydata`` is minimized.
+    """
+
+    func = set_variables(f, xdata, ydata)
+
     method = 'lm'
 
     if method == 'lm':
-        x, fvec = leastsq(residual_function_addr, p0, len(xdata))
+        popt, fvec = leastsq(residual_function_addr, p0, len(xdata))
 
-    return x, fvec
+    return popt, None
