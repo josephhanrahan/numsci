@@ -42,6 +42,6 @@ def njit_function():
 Install dependencies and compile
 
 ```
-$ pip install -r requirements.txt
-$ bash build.sh                                          
+pip install -r requirements.txt
+bash build.sh                                          
 ```
