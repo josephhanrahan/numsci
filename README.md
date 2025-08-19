@@ -25,7 +25,7 @@ Outside of the jit-compiled function, the caller must also obtain the address to
 model_function_address = model_function.address
 ```
 
-This can then be used to call Scipy functions like curve_fit() in an njit function
+This can then be used to call Scipy-like functions like `curve_fit()` in a `@njit` decorated function
 
 ```
 from numsci.optimize import curve_fit
