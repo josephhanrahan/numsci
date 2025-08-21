@@ -1,9 +1,9 @@
 from numba import types, njit
-import os
+import sysconfig
 import ctypes
 import numpy as np
 
-minpack = ctypes.CDLL(os.getcwd() + "/numsci/optimize/minpack.so")
+minpack = ctypes.CDLL(sysconfig.get_paths()['platlib'] + "/numsci/optimize/libminpack.so")
 
 model_sig = types.double(types.double, types.CPointer(types.double))
 

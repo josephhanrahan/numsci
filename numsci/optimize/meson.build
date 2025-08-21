@@ -7,6 +7,7 @@ shared_library(
   'minpack', 
   ['__minpack.c', 'residual.c'],
   install : true,
+  install_dir : py.get_install_dir() / 'numsci/optimize',
   c_args : ['-O3'],
   dependencies : [m_dep]
 )
