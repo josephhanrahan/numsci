@@ -124,7 +124,7 @@ def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=None,
         residuals of ``f(xdata, *popt) - ydata`` is minimized.
     """
 
-    func = set_variables(f, xdata, ydata)
+    set_variables(f, xdata, ydata)
 
     method = 'lm'
 
