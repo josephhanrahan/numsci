@@ -1,20 +1,21 @@
 from numba import types, njit
-import os
+import sysconfig
 import ctypes
 import numpy as np
 
-minpack = ctypes.CDLL(os.getcwd() + "/numsci/optimize/minpack.so")
+minpack = ctypes.CDLL(sysconfig.get_paths()['platlib'] 
+                      + "/numsci/optimize/libminpack.so")
 
 model_sig = types.double(types.double, types.CPointer(types.double))
 
 _lmdif = minpack.LMDIF
 _lmdif.restype = None
-_lmdif.argtypes = [ctypes.c_void_p,
-                   ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double,
-                   ctypes.c_double, ctypes.c_double, ctypes.c_int, ctypes.c_double,
-                   ctypes.c_void_p, ctypes.c_int, ctypes.c_double, ctypes.c_int,
-                   ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, 
-                   ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+_lmdif.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_void_p, 
+                   ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, 
+                   ctypes.c_int, ctypes.c_double, ctypes.c_void_p, ctypes.c_int, 
+                   ctypes.c_double, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, 
+                   ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p, 
+                   ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
 _set_variables = minpack.set_variables
 _set_variables.restype = None
@@ -90,7 +91,11 @@ def leastsq(func_addr, x0, m, Dfun=None, full_output=False,
     wa4=np.zeros((m,), dtype=np.float64)
 
     if Dfun is None:
-        _lmdif(func_addr, m, n, x.ctypes.data, fvec.ctypes.data, ftol, xtol, gtol, maxfev, epsfcn, diag.ctypes.data, mode, factor, nprint, info.ctypes.data, nfev.ctypes.data, fjac.ctypes.data, ldfjac, ipvt.ctypes.data, qtf.ctypes.data, wa1.ctypes.data, wa2.ctypes.data, wa3.ctypes.data, wa4.ctypes.data)
+        _lmdif(func_addr, m, n, x.ctypes.data, fvec.ctypes.data, ftol, xtol, gtol, 
+               maxfev, epsfcn, diag.ctypes.data, mode, factor, nprint, 
+               info.ctypes.data, nfev.ctypes.data, fjac.ctypes.data, ldfjac, 
+               ipvt.ctypes.data, qtf.ctypes.data, wa1.ctypes.data, wa2.ctypes.data, 
+               wa3.ctypes.data, wa4.ctypes.data)
 
     return x, fvec
 
@@ -109,22 +114,27 @@ def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=None,
         The address to model function, f(x, *params). It must take the independent
         variable x as the first argument and an array of params to fit
         as the second argument.
-    xdata : array_like
+    xdata : ndarray, float64
         The independent variable where the data is measured in the form of a
         length M array.
-    ydata : array_like
+    ydata : ndarray, float64
         The dependent data, a length M array - nominally ``f(xdata, *params)``.
-    p0 : array_like
+    p0 : ndarray, float64
         Initial guess for the parameters (length N).
 
     Returns
     -------
-    popt : array
+    popt : ndarray, float64
         Optimal values for the parameters so that the sum of the squared
         residuals of ``f(xdata, *popt) - ydata`` is minimized.
     """
 
-    func = set_variables(f, xdata, ydata)
+    # data and parameter guesses must be float64
+    if xdata.dtype != np.float64 or ydata.dtype != np.float64 or p0 != np.float64:
+        return np.zeros_like(p0), None
+
+
+    set_variables(f, xdata, ydata)
 
     method = 'lm'
 

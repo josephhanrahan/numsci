@@ -1,0 +1,22 @@
+[build-system]
+build-backend = 'mesonpy'
+requires = ['meson-python']
+
+[project]
+name = 'numsci'
+version = '1.0.0'
+description = 'A Numba-compatible Scipy port'
+readme = 'README.md'
+license = {file = 'LICENSE'}
+dependencies = [
+    "numpy",
+    "numba",
+]
+
+[tool.ruff]
+exclude = [
+    "examples.ipynb",
+    "test.ipynb",
+]
+[tool.ruff.lint]
+select = ["E", "F",]
