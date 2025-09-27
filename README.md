@@ -27,6 +27,7 @@ model_function_address = model_function.address
 
 This can then be used to call Scipy-like functions like `curve_fit()` in a `@njit` decorated function
 
+
 ```
 from numsci.optimize import curve_fit
 
@@ -42,6 +43,7 @@ def njit_function():
 Install dependencies and compile
 
 ```
-$ pip install -r requirements.txt
-$ bash build.sh                                          
+
+pip install -r requirements.txt
+bash build.sh                                          
 ```
