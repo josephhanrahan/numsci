@@ -12,3 +12,11 @@ dependencies = [
     "numpy",
     "numba",
 ]
+
+[tool.ruff]
+exclude = [
+    "examples.ipynb",
+    "test.ipynb",
+]
+[tool.ruff.lint]
+select = ["E", "F",]
