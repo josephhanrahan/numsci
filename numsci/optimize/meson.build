@@ -14,5 +14,11 @@ shared_library(
 
 python_sources = [
   '__init__.py',
-  'minpackcore.py',
+  'minpackcore.py'
 ]
+
+py.install_sources(
+  python_sources,
+  pure: false,
+  subdir: 'numsci/optimize'
+)
