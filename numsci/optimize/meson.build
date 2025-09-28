@@ -11,3 +11,8 @@ shared_library(
   c_args : ['-O3'],
   dependencies : [m_dep]
 )
+
+python_sources = [
+  '__init__.py',
+  'minpackcore.py',
+]
