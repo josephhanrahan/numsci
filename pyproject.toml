@@ -4,7 +4,7 @@ requires = ['meson-python']
 
 [project]
 name = 'numsci'
-version = '1.0.2'
+version = '1.0.3'
 description = 'A Numba-compatible Scipy port'
 readme = 'README.md'
 license = {file = 'LICENSE'}

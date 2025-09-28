@@ -1,7 +1,7 @@
 project(
   'numsci',
   'c', 
-  version : '1.0.2'
+  version : '1.0.3'
 )
 
 py = import('python').find_installation(pure: false)
