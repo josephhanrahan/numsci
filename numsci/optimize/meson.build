@@ -9,7 +9,8 @@ shared_library(
   install : true,
   install_dir : py.get_install_dir() / 'numsci/optimize',
   c_args : ['-O3'],
-  dependencies : [m_dep]
+  dependencies : [m_dep],
+  pure: false,
 )
 
 python_sources = [
