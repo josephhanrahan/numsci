@@ -129,11 +129,6 @@ def curve_fit(f, xdata, ydata, p0=None, sigma=None, absolute_sigma=None,
         residuals of ``f(xdata, *popt) - ydata`` is minimized.
     """
 
-    # data and parameter guesses must be float64
-    if xdata.dtype != np.float64 or ydata.dtype != np.float64 or p0 != np.float64:
-        return np.zeros_like(p0), None
-
-
     set_variables(f, xdata, ydata)
 
     method = 'lm'
